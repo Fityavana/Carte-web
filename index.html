@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carte — recherche de lieux</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="brand"><span class="dot"></span>Petite Carte</div>
+
+<div id="map"></div>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <input id="searchInput" type="text" placeholder="Chercher une adresse, une ville, un lieu…" autocomplete="off" />
+    <button id="searchBtn" title="Rechercher">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
+  <div class="results" id="results"></div>
+</div>
+
+<div class="locate-btn" id="locateBtn" title="Me localiser">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#24382c" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+</div>
+
+<div class="filter-btn" id="filterBtn">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#24382c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+  Filtres
+  <span class="count" id="filterCount">0</span>
+</div>
+
+<div class="filter-panel" id="filterPanel">
+  <h4>Afficher sur la carte</h4>
+  <div class="filter-list" id="filterList"></div>
+  <div class="filter-actions">
+    <button class="clear" id="filterClear">Effacer</button>
+    <button class="apply" id="filterApply">Afficher</button>
+  </div>
+  <div class="filter-hint">Recherche dans la zone visible. Zoome un peu si la zone est trop grande.</div>
+</div>
+
+<div class="status" id="status"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="logique.js"></script>
+</body>
+</html>
