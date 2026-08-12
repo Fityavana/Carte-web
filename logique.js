@@ -94,6 +94,70 @@ document.getElementById('locateBtn').addEventListener('click', () => {
   );
 });
 
+// Géocodage d'un lieu en un seul résultat (utilisé par l'itinéraire)
+async function geocodeOne(query){
+  const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`;
+  const res = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+  const data = await res.json();
+  if(!data.length) return null;
+  return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), label: data[0].display_name.split(',')[0] };
+}
+
+function debounce(fn, delay){
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
+// Auto-suggestion en direct pendant la saisie (utilisée par les champs de l'itinéraire)
+function setupAutocomplete(inputEl, suggestionsEl, onSelect){
+  const runSearch = debounce(async () => {
+    const q = inputEl.value.trim();
+    if(q.length < 3){
+      suggestionsEl.classList.remove('show');
+      suggestionsEl.innerHTML = '';
+      return;
+    }
+    try{
+      const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(q)}`;
+      const res = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+      const data = await res.json();
+
+      suggestionsEl.innerHTML = '';
+      if(!data.length){
+        suggestionsEl.classList.remove('show');
+        return;
+      }
+      data.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'result-item';
+        const parts = r.display_name.split(',');
+        item.innerHTML = `<span class="main">${parts[0]}</span><span class="sub">${parts.slice(1,3).join(',').trim()}</span>`;
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          inputEl.value = parts[0];
+          onSelect({ lat: parseFloat(r.lat), lon: parseFloat(r.lon), label: parts[0] });
+          suggestionsEl.classList.remove('show');
+          suggestionsEl.innerHTML = '';
+        });
+        suggestionsEl.appendChild(item);
+      });
+      suggestionsEl.classList.add('show');
+    }catch(err){
+      console.error('Erreur autosuggestion.', err);
+    }
+  }, 350);
+
+  inputEl.addEventListener('input', () => {
+    // toute frappe manuelle invalide un lieu précédemment sélectionné (suggestion ou GPS)
+    delete inputEl.dataset.lat;
+    delete inputEl.dataset.lon;
+    runSearch();
+  });
+}
+
 document.addEventListener('click', (e) => {
   if(!e.target.closest('.search-wrap')) resultsEl.classList.remove('show');
 });
@@ -288,5 +352,159 @@ async function loadPOIs(){
   }catch(err){
     console.error('Erreur lors du traitement des résultats Overpass.', err);
     showStatus("Erreur lors du traitement des résultats. Réessaie.");
+  }
+}
+
+// ---------- Itinéraire et calcul de distance (OSRM, gratuit, données OSM) ----------
+const routeBtn = document.getElementById('routeBtn');
+const routePanel = document.getElementById('routePanel');
+const routeStartInput = document.getElementById('routeStart');
+const routeEndInput = document.getElementById('routeEnd');
+const routeResultEl = document.getElementById('routeResult');
+const routeStartSuggestions = document.getElementById('routeStartSuggestions');
+const routeEndSuggestions = document.getElementById('routeEndSuggestions');
+const routeLayer = L.layerGroup().addTo(map);
+
+function routePinIcon(color, letter){
+  return L.divIcon({
+    className: '',
+    html: `<div class="poi-pin" style="background:${color}"><span style="font-size:12px;color:#fff;font-weight:700;transform:rotate(-45deg)">${letter}</span></div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 28],
+    popupAnchor: [0, -26]
+  });
+}
+
+routeBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  filterPanel.classList.remove('show');
+  routePanel.classList.toggle('show');
+});
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.route-panel') && !e.target.closest('.route-btn')) routePanel.classList.remove('show');
+  if(!e.target.closest('#routeStart') && !e.target.closest('#routeStartSuggestions')){
+    routeStartSuggestions.classList.remove('show');
+  }
+  if(!e.target.closest('#routeEnd') && !e.target.closest('#routeEndSuggestions')){
+    routeEndSuggestions.classList.remove('show');
+  }
+});
+// évite que le panneau filtre ne recouvre le panneau itinéraire ouvert
+filterBtn.addEventListener('click', () => routePanel.classList.remove('show'));
+
+document.getElementById('routeUseLocation').addEventListener('click', () => {
+  if(!navigator.geolocation){
+    showStatus("La géolocalisation n'est pas supportée par ce navigateur.");
+    return;
+  }
+  showStatus('Localisation en cours…');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      hideStatus();
+      routeStartInput.value = 'Ma position';
+      routeStartInput.dataset.lat = pos.coords.latitude;
+      routeStartInput.dataset.lon = pos.coords.longitude;
+      routeStartSuggestions.classList.remove('show');
+    },
+    () => showStatus("Impossible d'obtenir la position."),
+    { enableHighAccuracy: true, timeout: 8000 }
+  );
+});
+
+// auto-suggestion en direct sur les deux champs de l'itinéraire
+setupAutocomplete(routeStartInput, routeStartSuggestions, (place) => {
+  routeStartInput.dataset.lat = place.lat;
+  routeStartInput.dataset.lon = place.lon;
+});
+setupAutocomplete(routeEndInput, routeEndSuggestions, (place) => {
+  routeEndInput.dataset.lat = place.lat;
+  routeEndInput.dataset.lon = place.lon;
+});
+
+function formatDistance(m){
+  return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
+}
+function formatDuration(s){
+  const h = Math.floor(s / 3600);
+  const min = Math.round((s % 3600) / 60);
+  return h > 0 ? `${h} h ${min} min` : `${min} min`;
+}
+
+document.getElementById('routeClear').addEventListener('click', () => {
+  routeLayer.clearLayers();
+  routeStartInput.value = '';
+  routeEndInput.value = '';
+  delete routeStartInput.dataset.lat;
+  delete routeStartInput.dataset.lon;
+  delete routeEndInput.dataset.lat;
+  delete routeEndInput.dataset.lon;
+  routeStartSuggestions.classList.remove('show');
+  routeEndSuggestions.classList.remove('show');
+  routeResultEl.classList.remove('show');
+  routeResultEl.innerHTML = '';
+  hideStatus();
+});
+
+document.getElementById('routeCalc').addEventListener('click', calculateRoute);
+
+async function calculateRoute(){
+  const startQuery = routeStartInput.value.trim();
+  const endQuery = routeEndInput.value.trim();
+
+  if(!startQuery || !endQuery){
+    showStatus('Renseigne un point de départ et un point d\'arrivée.');
+    return;
+  }
+
+  routeLayer.clearLayers();
+  routeResultEl.classList.remove('show');
+  showStatus('Recherche des lieux…');
+
+  try{
+    // Utilise les coordonnées mémorisées (suggestion cliquée ou GPS) si disponibles, sinon géocode le texte
+    const startPoint = (routeStartInput.dataset.lat)
+      ? { lat: parseFloat(routeStartInput.dataset.lat), lon: parseFloat(routeStartInput.dataset.lon), label: routeStartInput.value || 'Point de départ' }
+      : await geocodeOne(startQuery);
+    const endPoint = (routeEndInput.dataset.lat)
+      ? { lat: parseFloat(routeEndInput.dataset.lat), lon: parseFloat(routeEndInput.dataset.lon), label: routeEndInput.value || 'Point d\'arrivée' }
+      : await geocodeOne(endQuery);
+
+    if(!startPoint || !endPoint){
+      showStatus(`Lieu introuvable : ${!startPoint ? startQuery : endQuery}`);
+      return;
+    }
+
+    showStatus('Calcul de l\'itinéraire…');
+    const url = `https://router.project-osrm.org/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=full&geometries=geojson`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if(data.code !== 'Ok' || !data.routes.length){
+      showStatus("Impossible de trouver un itinéraire entre ces deux lieux.");
+      return;
+    }
+
+    const route = data.routes[0];
+    const latlngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
+
+    const line = L.polyline(latlngs, { color: '#3c5c48', weight: 5, opacity: 0.85 }).addTo(routeLayer);
+    L.marker([startPoint.lat, startPoint.lon], { icon: routePinIcon('#2e7d32', 'A') })
+      .bindPopup(`<div class="popup-title">Départ</div>${startPoint.label}`)
+      .addTo(routeLayer);
+    L.marker([endPoint.lat, endPoint.lon], { icon: routePinIcon('#c0392b', 'B') })
+      .bindPopup(`<div class="popup-title">Arrivée</div>${endPoint.label}`)
+      .addTo(routeLayer);
+
+    map.fitBounds(line.getBounds(), { padding: [40, 40] });
+
+    hideStatus();
+    routeResultEl.innerHTML = `
+      <div class="big">${formatDistance(route.distance)} — ${formatDuration(route.duration)}</div>
+      <div>En voiture, depuis ${startPoint.label} vers ${endPoint.label}.</div>
+    `;
+    routeResultEl.classList.add('show');
+  }catch(err){
+    console.error('Erreur lors du calcul d\'itinéraire.', err);
+    showStatus("Erreur lors du calcul de l'itinéraire. Réessaie.");
   }
 }
