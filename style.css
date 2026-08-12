@@ -133,3 +133,42 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
 .filter-actions .clear{ background:#e7e9df; color: var(--ink); }
 .filter-actions .clear:hover{ background:#dadcd0; }
 .filter-hint{ font-size:0.72rem; color:#7a8579; margin-top:8px; line-height:1.4; }
+
+/* pastilles des points d'intérêt : contraste fort contre le fond de carte */
+.poi-pin{
+  width:30px; height:30px; border-radius:50% 50% 50% 4px;
+  display:flex; align-items:center; justify-content:center;
+  transform: rotate(45deg);
+  border:2.5px solid var(--white);
+  box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+}
+.poi-pin span{
+  transform: rotate(-45deg);
+  font-size:14px; line-height:1;
+}
+
+/* regroupement de points (clusters) : bulles cohérentes avec la palette */
+.poi-cluster{
+  background: var(--moss-dark);
+  color: #fff;
+  border-radius:50%;
+  border:3px solid var(--white);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:0.82rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.legend{
+  position:absolute; bottom:28px; left:50%; transform: translateX(-50%);
+  z-index:500; display:none;
+  background: var(--white); border:1.5px solid var(--line);
+  border-radius:12px; padding:8px 12px;
+  box-shadow: 0 8px 22px rgba(23,33,26,0.16);
+  flex-wrap:wrap; gap:6px 14px; max-width:min(90vw, 560px);
+}
+.legend.show{ display:flex; }
+.legend-item{
+  display:flex; align-items:center; gap:6px;
+  font-size:0.78rem; color: var(--ink);
+}
+.legend-item .swatch{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
