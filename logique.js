@@ -97,23 +97,36 @@ document.addEventListener('click', (e) => {
 
 // ---------- Filtre des points d'intérêt (Overpass API, gratuite, données OSM) ----------
 const categories = {
-  shop:        { label: 'Magasins',            color: '#d68c3e', filter: '["shop"]' },
-  mall:        { label: 'Centres commerciaux',  color: '#8e44ad', filter: '["shop"="mall"]' },
-  supermarket: { label: 'Supermarchés',         color: '#27ae60', filter: '["shop"="supermarket"]' },
-  bar:         { label: 'Bars',                 color: '#c0392b', filter: '["amenity"="bar"]' },
-  restaurant:  { label: 'Restaurants',          color: '#e67e22', filter: '["amenity"="restaurant"]' },
-  cafe:        { label: 'Cafés',                color: '#795548', filter: '["amenity"="cafe"]' },
-  hotel:       { label: 'Hôtels',                color: '#16a085', filter: '["tourism"="hotel"]' },
-  pharmacy:    { label: 'Pharmacies',            color: '#2980b9', filter: '["amenity"="pharmacy"]' },
-  atm:         { label: 'Distributeurs (ATM)',   color: '#34495e', filter: '["amenity"="atm"]' },
-  fuel:        { label: 'Stations essence',      color: '#7f8c8d', filter: '["amenity"="fuel"]' }
+  shop:        { label: 'Magasins',            color: '#d68c3e', icon: '🛍️', filter: '["shop"]' },
+  mall:        { label: 'Centres commerciaux',  color: '#8e44ad', icon: '🏬', filter: '["shop"="mall"]' },
+  supermarket: { label: 'Supermarchés',         color: '#27ae60', icon: '🛒', filter: '["shop"="supermarket"]' },
+  bar:         { label: 'Bars',                 color: '#c0392b', icon: '🍸', filter: '["amenity"="bar"]' },
+  restaurant:  { label: 'Restaurants',          color: '#e67e22', icon: '🍽️', filter: '["amenity"="restaurant"]' },
+  cafe:        { label: 'Cafés',                color: '#795548', icon: '☕', filter: '["amenity"="cafe"]' },
+  hotel:       { label: 'Hôtels',                color: '#16a085', icon: '🛏️', filter: '["tourism"="hotel"]' },
+  pharmacy:    { label: 'Pharmacies',            color: '#2980b9', icon: '✚', filter: '["amenity"="pharmacy"]' },
+  atm:         { label: 'Distributeurs (ATM)',   color: '#34495e', icon: '🏧', filter: '["amenity"="atm"]' },
+  fuel:        { label: 'Stations essence',      color: '#7f8c8d', icon: '⛽', filter: '["amenity"="fuel"]' }
 };
 
 const filterListEl = document.getElementById('filterList');
 const filterBtn = document.getElementById('filterBtn');
 const filterPanel = document.getElementById('filterPanel');
 const filterCount = document.getElementById('filterCount');
-const poiLayer = L.layerGroup().addTo(map);
+const legendEl = document.getElementById('legend');
+
+// Regroupe automatiquement les points proches pour éviter le fouillis visuel
+const poiLayer = L.markerClusterGroup({
+  maxClusterRadius: 50,
+  iconCreateFunction: function(cluster){
+    return L.divIcon({
+      html: `<div class="poi-cluster" style="width:${34 + Math.min(cluster.getChildCount(),20)}px; height:${34 + Math.min(cluster.getChildCount(),20)}px;">${cluster.getChildCount()}</div>`,
+      className: '',
+      iconSize: null
+    });
+  }
+});
+map.addLayer(poiLayer);
 
 Object.entries(categories).forEach(([key, cat]) => {
   const item = document.createElement('label');
@@ -150,6 +163,8 @@ document.getElementById('filterClear').addEventListener('click', () => {
   filterListEl.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
   updateFilterCount();
   poiLayer.clearLayers();
+  legendEl.classList.remove('show');
+  legendEl.innerHTML = '';
   hideStatus();
 });
 
@@ -179,14 +194,41 @@ async function loadPOIs(){
   showStatus('Recherche des lieux dans cette zone…');
   filterPanel.classList.remove('show');
 
-  try{
-    const res = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      body: 'data=' + encodeURIComponent(query)
-    });
-    if(!res.ok) throw new Error('Overpass error');
-    const data = await res.json();
+  // Plusieurs miroirs gratuits d'Overpass API, on essaie chacun si le précédent échoue
+  const endpoints = [
+    'https://overpass-api.de/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://overpass.openstreetmap.ru/api/interpreter'
+  ];
 
+  let data = null;
+  let lastError = null;
+
+  for(const endpoint of endpoints){
+    try{
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'data=' + encodeURIComponent(query)
+      });
+      if(!res.ok){
+        lastError = new Error(`${endpoint} → HTTP ${res.status}`);
+        continue;
+      }
+      data = await res.json();
+      break;
+    }catch(err){
+      lastError = err;
+    }
+  }
+
+  if(!data){
+    console.error('Overpass: tous les miroirs ont échoué.', lastError);
+    showStatus("Le service de recherche est momentanément indisponible. Réessaie dans un instant.");
+    return;
+  }
+
+  try{
     let count = 0;
     data.elements.forEach(el => {
       const lat = el.lat || (el.center && el.center.lat);
@@ -203,12 +245,14 @@ async function loadPOIs(){
       const cat = categories[matchKey];
 
       const name = tags.name || cat.label;
-      const marker = L.circleMarker([lat, lon], {
-        radius: 7,
-        color: '#ffffff',
-        weight: 2,
-        fillColor: cat.color,
-        fillOpacity: 0.95
+      const marker = L.marker([lat, lon], {
+        icon: L.divIcon({
+          className: '',
+          html: `<div class="poi-pin" style="background:${cat.color}"><span>${cat.icon}</span></div>`,
+          iconSize: [30, 30],
+          iconAnchor: [15, 28],
+          popupAnchor: [0, -26]
+        })
       });
       const addr = [tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' ');
       marker.bindPopup(`
@@ -223,10 +267,18 @@ async function loadPOIs(){
     hideStatus();
     if(count === 0){
       showStatus('Aucun lieu trouvé pour ces filtres dans cette zone.');
+      legendEl.classList.remove('show');
+      legendEl.innerHTML = '';
     } else {
       showStatus(`${count} lieu${count > 1 ? 'x' : ''} affiché${count > 1 ? 's' : ''}.`);
+      legendEl.innerHTML = selected.map(key => {
+        const c = categories[key];
+        return `<div class="legend-item"><span class="swatch" style="background:${c.color}"></span>${c.icon} ${c.label}</div>`;
+      }).join('');
+      legendEl.classList.add('show');
     }
   }catch(err){
-    showStatus("Erreur lors de la recherche des lieux. Réessaie.");
+    console.error('Erreur lors du traitement des résultats Overpass.', err);
+    showStatus("Erreur lors du traitement des résultats. Réessaie.");
   }
 }
