@@ -1,10 +1,13 @@
 // Carte centrée sur Antananarivo par défaut
-const map = L.map('map', { zoomControl: true }).setView([-18.8792, 47.5079], 13);
+const map = L.map('map', { zoomControl: false }).setView([-18.8792, 47.5079], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxZoom: 19
 }).addTo(map);
+
+document.getElementById('zoomInBtn').addEventListener('click', () => map.zoomIn());
+document.getElementById('zoomOutBtn').addEventListener('click', () => map.zoomOut());
 
 let marker = null;
 const statusEl = document.getElementById('status');
@@ -206,11 +209,15 @@ async function loadPOIs(){
 
   for(const endpoint of endpoints){
     try{
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'data=' + encodeURIComponent(query)
+        body: 'data=' + encodeURIComponent(query),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
       if(!res.ok){
         lastError = new Error(`${endpoint} → HTTP ${res.status}`);
         continue;
@@ -219,6 +226,7 @@ async function loadPOIs(){
       break;
     }catch(err){
       lastError = err;
+      console.error(`Overpass: échec sur ${endpoint}`, err);
     }
   }
 
