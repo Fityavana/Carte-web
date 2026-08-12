@@ -172,3 +172,20 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
   font-size:0.78rem; color: var(--ink);
 }
 .legend-item .swatch{ width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+.zoom-ctrl{
+  position:absolute; top:64px; left:16px; z-index:500;
+  display:flex; flex-direction:column;
+  background: var(--white); border:1.5px solid var(--line);
+  border-radius:12px; overflow:hidden;
+  box-shadow: 0 8px 22px rgba(23,33,26,0.16);
+}
+.zoom-ctrl button{
+  width:38px; height:38px; border:none; background:transparent;
+  color: var(--ink); font-size:1.2rem; font-weight:600; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Space Grotesk', sans-serif; line-height:1;
+}
+.zoom-ctrl button:first-child{ border-bottom:1px solid var(--line); }
+.zoom-ctrl button:hover{ background:#f1f3ea; }
+.zoom-ctrl button:active{ background:#e7e9df; }
