@@ -182,6 +182,8 @@ function setupAutocomplete(inputEl, suggestionsEl, onSelect, getBias){
     // toute frappe manuelle invalide un lieu précédemment sélectionné (suggestion ou GPS)
     delete inputEl.dataset.lat;
     delete inputEl.dataset.lon;
+    delete inputEl.dataset.countryCode;
+    delete inputEl.dataset.city;
     runSearch();
   });
 }
@@ -392,8 +394,6 @@ const routeResultEl = document.getElementById('routeResult');
 const routeStartSuggestions = document.getElementById('routeStartSuggestions');
 const routeEndSuggestions = document.getElementById('routeEndSuggestions');
 const routeLayer = L.layerGroup().addTo(map);
-// mémorise ville/pays du départ choisi, pour prioriser les suggestions d'arrivée
-let startBias = null;
 
 function routePinIcon(color, letter){
   return L.divIcon({
@@ -441,12 +441,8 @@ document.getElementById('routeUseLocation').addEventListener('click', () => {
         const res = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
         const data = await res.json();
         const addr = data.address || {};
-        startBias = {
-          lat: pos.coords.latitude,
-          lon: pos.coords.longitude,
-          countryCode: addr.country_code,
-          city: addr.city || addr.town || addr.village || addr.municipality
-        };
+        routeStartInput.dataset.countryCode = addr.country_code || '';
+        routeStartInput.dataset.city = addr.city || addr.town || addr.village || addr.municipality || '';
       }catch(err){
         console.error('Erreur reverse geocoding.', err);
       }
@@ -456,25 +452,31 @@ document.getElementById('routeUseLocation').addEventListener('click', () => {
   );
 });
 
-// toute nouvelle saisie du départ invalide le biais géographique précédent
-routeStartInput.addEventListener('input', () => { startBias = null; });
-
 // auto-suggestion en direct sur les deux champs de l'itinéraire
-// dès qu'un départ est choisi, on met aussi à jour le biais avec sa ville/pays
+// dès qu'un lieu est choisi (départ ou arrivée), on mémorise ses coordonnées et sa ville/pays sur le champ lui-même
 setupAutocomplete(routeStartInput, routeStartSuggestions, (place) => {
   routeStartInput.dataset.lat = place.lat;
   routeStartInput.dataset.lon = place.lon;
-  startBias = {
-    lat: place.lat,
-    lon: place.lon,
-    countryCode: place.address.country_code,
-    city: place.address.city || place.address.town || place.address.village || place.address.municipality
-  };
+  routeStartInput.dataset.countryCode = place.address.country_code || '';
+  routeStartInput.dataset.city = place.address.city || place.address.town || place.address.village || place.address.municipality || '';
 });
 setupAutocomplete(routeEndInput, routeEndSuggestions, (place) => {
   routeEndInput.dataset.lat = place.lat;
   routeEndInput.dataset.lon = place.lon;
-}, () => startBias);
+  routeEndInput.dataset.countryCode = place.address.country_code || '';
+  routeEndInput.dataset.city = place.address.city || place.address.town || place.address.village || place.address.municipality || '';
+}, () => routeBias(routeStartInput));
+
+// lit le biais géographique (ville/pays) directement depuis un champ, pour rester fiable même après inversion
+function routeBias(inputEl){
+  if(!inputEl.dataset.lat) return null;
+  return {
+    lat: parseFloat(inputEl.dataset.lat),
+    lon: parseFloat(inputEl.dataset.lon),
+    countryCode: inputEl.dataset.countryCode,
+    city: inputEl.dataset.city
+  };
+}
 
 function formatDistance(m){
   return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
@@ -489,11 +491,10 @@ document.getElementById('routeClear').addEventListener('click', () => {
   routeLayer.clearLayers();
   routeStartInput.value = '';
   routeEndInput.value = '';
-  delete routeStartInput.dataset.lat;
-  delete routeStartInput.dataset.lon;
-  delete routeEndInput.dataset.lat;
-  delete routeEndInput.dataset.lon;
-  startBias = null;
+  ['lat', 'lon', 'countryCode', 'city'].forEach(key => {
+    delete routeStartInput.dataset[key];
+    delete routeEndInput.dataset[key];
+  });
   routeStartSuggestions.classList.remove('show');
   routeEndSuggestions.classList.remove('show');
   routeResultEl.classList.remove('show');
@@ -502,6 +503,30 @@ document.getElementById('routeClear').addEventListener('click', () => {
 });
 
 document.getElementById('routeCalc').addEventListener('click', calculateRoute);
+
+document.getElementById('routeSwap').addEventListener('click', () => {
+  // échange le texte affiché
+  const tmpValue = routeStartInput.value;
+  routeStartInput.value = routeEndInput.value;
+  routeEndInput.value = tmpValue;
+
+  // échange les données mémorisées (coordonnées, ville, pays) pour chaque champ
+  ['lat', 'lon', 'countryCode', 'city'].forEach(key => {
+    const tmp = routeStartInput.dataset[key];
+    if(routeEndInput.dataset[key] !== undefined) routeStartInput.dataset[key] = routeEndInput.dataset[key];
+    else delete routeStartInput.dataset[key];
+    if(tmp !== undefined) routeEndInput.dataset[key] = tmp;
+    else delete routeEndInput.dataset[key];
+  });
+
+  routeStartSuggestions.classList.remove('show');
+  routeEndSuggestions.classList.remove('show');
+
+  // si un itinéraire était déjà affiché, on le recalcule directement dans le nouveau sens
+  if(routeStartInput.value.trim() && routeEndInput.value.trim() && routeResultEl.classList.contains('show')){
+    calculateRoute();
+  }
+});
 
 async function calculateRoute(){
   const startQuery = routeStartInput.value.trim();
