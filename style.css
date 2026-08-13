@@ -234,3 +234,12 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
 .route-result.show{ display:block; }
 .route-result .big{ font-weight:700; font-size:0.98rem; }
 .route-panel .results{ max-height:160px; margin-top:0; margin-bottom:8px; }
+
+.route-swap-row{ display:flex; justify-content:center; margin:-4px 0 2px; }
+.route-swap-row button{
+  width:28px; height:28px; border-radius:50%;
+  background: var(--paper); border:1.5px solid var(--line);
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.route-swap-row button:hover{ border-color: var(--moss); transform: rotate(180deg); }
