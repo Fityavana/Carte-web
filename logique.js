@@ -1,13 +1,55 @@
 // Carte centrée sur Antananarivo par défaut
 const map = L.map('map', { zoomControl: false }).setView([-18.8792, 47.5079], 13);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// Deux fonds de carte gratuits (mêmes données OSM) : un clair, un sombre (CARTO)
+const lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxZoom: 19
-}).addTo(map);
+});
+const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19
+});
 
 document.getElementById('zoomInBtn').addEventListener('click', () => map.zoomIn());
 document.getElementById('zoomOutBtn').addEventListener('click', () => map.zoomOut());
+
+// ---------- Mode sombre ----------
+const themeToggle = document.getElementById('themeToggle');
+const moonIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A8.5 8.5 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z"/></svg>`;
+const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>`;
+
+// localStorage peut être bloqué (protection anti-pistage) : on l'utilise en best-effort seulement
+function getSavedTheme(){
+  try{ return localStorage.getItem('theme'); }catch(e){ return null; }
+}
+function saveTheme(theme){
+  try{ localStorage.setItem('theme', theme); }catch(e){ /* pas grave, le choix reste actif le temps de la session */ }
+}
+
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
+  themeToggle.title = theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre';
+
+  if(theme === 'dark'){
+    if(!map.hasLayer(darkTiles)) darkTiles.addTo(map);
+    if(map.hasLayer(lightTiles)) map.removeLayer(lightTiles);
+  } else {
+    if(!map.hasLayer(lightTiles)) lightTiles.addTo(map);
+    if(map.hasLayer(darkTiles)) map.removeLayer(darkTiles);
+  }
+}
+
+const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+applyTheme(getSavedTheme() || (prefersDark ? 'dark' : 'light'));
+
+themeToggle.addEventListener('click', () => {
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  saveTheme(next);
+});
 
 let marker = null;
 const statusEl = document.getElementById('status');
@@ -568,7 +610,9 @@ async function calculateRoute(){
     const route = data.routes[0];
     const latlngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
 
-    const line = L.polyline(latlngs, { color: '#3c5c48', weight: 5, opacity: 0.85 }).addTo(routeLayer);
+    // couleur du tracé alignée sur le thème actif (clair ou sombre)
+    const routeColor = getComputedStyle(document.documentElement).getPropertyValue('--moss').trim() || '#3c5c48';
+    const line = L.polyline(latlngs, { color: routeColor, weight: 5, opacity: 0.85 }).addTo(routeLayer);
     L.marker([startPoint.lat, startPoint.lon], { icon: routePinIcon('#2e7d32', 'A') })
       .bindPopup(`<div class="popup-title">Départ</div>${startPoint.label}`)
       .addTo(routeLayer);
