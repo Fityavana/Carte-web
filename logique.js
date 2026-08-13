@@ -111,8 +111,27 @@ function debounce(fn, delay){
   };
 }
 
+// Construit le paramètre viewbox pour orienter Nominatim vers une zone (biais doux, non restrictif)
+function biasViewbox(bias){
+  if(!bias) return '';
+  const d = 1.0; // ~110 km de marge autour du point de référence
+  const west = bias.lon - d, east = bias.lon + d, north = bias.lat + d, south = bias.lat - d;
+  return `&viewbox=${west},${north},${east},${south}&bounded=0`;
+}
+
+// Score de priorité : même ville < même pays < reste du monde
+function placePriority(r, bias){
+  if(!bias) return 0;
+  const addr = r.address || {};
+  const sameCity = bias.city && [addr.city, addr.town, addr.village, addr.municipality].includes(bias.city);
+  if(sameCity) return 0;
+  if(bias.countryCode && addr.country_code === bias.countryCode) return 1;
+  return 2;
+}
+
 // Auto-suggestion en direct pendant la saisie (utilisée par les champs de l'itinéraire)
-function setupAutocomplete(inputEl, suggestionsEl, onSelect){
+// getBias() peut retourner { lat, lon, countryCode, city } pour prioriser les résultats proches
+function setupAutocomplete(inputEl, suggestionsEl, onSelect, getBias){
   const runSearch = debounce(async () => {
     const q = inputEl.value.trim();
     if(q.length < 3){
@@ -121,9 +140,18 @@ function setupAutocomplete(inputEl, suggestionsEl, onSelect){
       return;
     }
     try{
-      const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(q)}`;
+      const bias = getBias ? getBias() : null;
+      const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&q=${encodeURIComponent(q)}${biasViewbox(bias)}`;
       const res = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
-      const data = await res.json();
+      let data = await res.json();
+
+      // priorise les résultats de la même ville, puis du même pays que le point de référence
+      if(bias){
+        data = data
+          .map((r, i) => ({ r, i, score: placePriority(r, bias) }))
+          .sort((a, b) => a.score - b.score || a.i - b.i)
+          .map(x => x.r);
+      }
 
       suggestionsEl.innerHTML = '';
       if(!data.length){
@@ -138,7 +166,7 @@ function setupAutocomplete(inputEl, suggestionsEl, onSelect){
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           inputEl.value = parts[0];
-          onSelect({ lat: parseFloat(r.lat), lon: parseFloat(r.lon), label: parts[0] });
+          onSelect({ lat: parseFloat(r.lat), lon: parseFloat(r.lon), label: parts[0], address: r.address || {} });
           suggestionsEl.classList.remove('show');
           suggestionsEl.innerHTML = '';
         });
@@ -364,6 +392,8 @@ const routeResultEl = document.getElementById('routeResult');
 const routeStartSuggestions = document.getElementById('routeStartSuggestions');
 const routeEndSuggestions = document.getElementById('routeEndSuggestions');
 const routeLayer = L.layerGroup().addTo(map);
+// mémorise ville/pays du départ choisi, pour prioriser les suggestions d'arrivée
+let startBias = null;
 
 function routePinIcon(color, letter){
   return L.divIcon({
@@ -399,27 +429,52 @@ document.getElementById('routeUseLocation').addEventListener('click', () => {
   }
   showStatus('Localisation en cours…');
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
+    async (pos) => {
       hideStatus();
       routeStartInput.value = 'Ma position';
       routeStartInput.dataset.lat = pos.coords.latitude;
       routeStartInput.dataset.lon = pos.coords.longitude;
       routeStartSuggestions.classList.remove('show');
+      // récupère ville/pays de la position actuelle pour prioriser les suggestions d'arrivée
+      try{
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`;
+        const res = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+        const data = await res.json();
+        const addr = data.address || {};
+        startBias = {
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
+          countryCode: addr.country_code,
+          city: addr.city || addr.town || addr.village || addr.municipality
+        };
+      }catch(err){
+        console.error('Erreur reverse geocoding.', err);
+      }
     },
     () => showStatus("Impossible d'obtenir la position."),
     { enableHighAccuracy: true, timeout: 8000 }
   );
 });
 
+// toute nouvelle saisie du départ invalide le biais géographique précédent
+routeStartInput.addEventListener('input', () => { startBias = null; });
+
 // auto-suggestion en direct sur les deux champs de l'itinéraire
+// dès qu'un départ est choisi, on met aussi à jour le biais avec sa ville/pays
 setupAutocomplete(routeStartInput, routeStartSuggestions, (place) => {
   routeStartInput.dataset.lat = place.lat;
   routeStartInput.dataset.lon = place.lon;
+  startBias = {
+    lat: place.lat,
+    lon: place.lon,
+    countryCode: place.address.country_code,
+    city: place.address.city || place.address.town || place.address.village || place.address.municipality
+  };
 });
 setupAutocomplete(routeEndInput, routeEndSuggestions, (place) => {
   routeEndInput.dataset.lat = place.lat;
   routeEndInput.dataset.lon = place.lon;
-});
+}, () => startBias);
 
 function formatDistance(m){
   return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
@@ -438,6 +493,7 @@ document.getElementById('routeClear').addEventListener('click', () => {
   delete routeStartInput.dataset.lon;
   delete routeEndInput.dataset.lat;
   delete routeEndInput.dataset.lon;
+  startBias = null;
   routeStartSuggestions.classList.remove('show');
   routeEndSuggestions.classList.remove('show');
   routeResultEl.classList.remove('show');
