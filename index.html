@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -35,16 +35,17 @@
 </div>
 
 <div class="locate-btn" id="locateBtn" title="Me localiser">
-  <svg viewBox="0 0 24 24" fill="none" stroke="#24382c" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
 </div>
 
 <div class="top-right-controls">
+  <button class="theme-toggle" id="themeToggle" title="Basculer le mode sombre"></button>
   <div class="route-btn" id="routeBtn">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#24382c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.2 17.8 C 12 14, 10 9, 15.8 6.6"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.2 17.8 C 12 14, 10 9, 15.8 6.6"/></svg>
     Itinéraire
   </div>
   <div class="filter-btn" id="filterBtn">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#24382c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
     Filtres
     <span class="count" id="filterCount">0</span>
   </div>
@@ -56,14 +57,14 @@
     <span class="route-dot start"></span>
     <input id="routeStart" type="text" placeholder="Point de départ" autocomplete="off" />
     <button id="routeUseLocation" title="Utiliser ma position">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3c5c48" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
     </button>
   </div>
   <div class="results" id="routeStartSuggestions"></div>
 
   <div class="route-swap-row">
     <button id="routeSwap" title="Inverser départ et arrivée">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3c5c48" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M8 3v15"/><path d="M4 14l4 4 4-4"/>
         <path d="M16 21V6"/><path d="M20 10l-4-4-4 4"/>
       </svg>
@@ -97,6 +98,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
-<script src="logique.js"></script>
+<script src="logique.js?v=3"></script>
 </body>
 </html>
