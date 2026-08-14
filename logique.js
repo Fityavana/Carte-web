@@ -1,16 +1,12 @@
 // Carte centrée sur Antananarivo par défaut
 const map = L.map('map', { zoomControl: false }).setView([-18.8792, 47.5079], 13);
 
-// Deux fonds de carte gratuits (mêmes données OSM) : un clair, un sombre (CARTO)
-const lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+// Un seul fond de carte détaillé (OSM standard, avec toutes ses icônes : parkings, commerces, etc.)
+// Le mode sombre ne change pas de fond : il inverse ses couleurs par CSS pour garder toutes les icônes visibles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   maxZoom: 19
-});
-const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  subdomains: 'abcd',
-  maxZoom: 19
-});
+}).addTo(map);
 
 document.getElementById('zoomInBtn').addEventListener('click', () => map.zoomIn());
 document.getElementById('zoomOutBtn').addEventListener('click', () => map.zoomOut());
@@ -32,14 +28,6 @@ function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', theme);
   themeToggle.innerHTML = theme === 'dark' ? sunIcon : moonIcon;
   themeToggle.title = theme === 'dark' ? 'Passer en mode clair' : 'Passer en mode sombre';
-
-  if(theme === 'dark'){
-    if(!map.hasLayer(darkTiles)) darkTiles.addTo(map);
-    if(map.hasLayer(lightTiles)) map.removeLayer(lightTiles);
-  } else {
-    if(!map.hasLayer(lightTiles)) lightTiles.addTo(map);
-    if(map.hasLayer(darkTiles)) map.removeLayer(darkTiles);
-  }
 }
 
 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
