@@ -147,7 +147,7 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
 
 .filter-panel{
   position:absolute; top:64px; right:16px; z-index:500;
-  width:250px; background: var(--white); border:1.5px solid var(--line);
+  width:min(250px, calc(100vw - 32px)); background: var(--white); border:1.5px solid var(--line);
   border-radius:12px; box-shadow: 0 8px 22px var(--shadow);
   padding:12px; display:none;
 }
@@ -244,7 +244,7 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
 
 .route-panel{
   position:absolute; top:64px; right:16px; z-index:500;
-  width:270px; background: var(--white); border:1.5px solid var(--line);
+  width:min(270px, calc(100vw - 32px)); background: var(--white); border:1.5px solid var(--line);
   border-radius:12px; box-shadow: 0 8px 22px var(--shadow);
   padding:12px; display:none;
 }
@@ -283,4 +283,35 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 .route-swap-row button:hover{ border-color: var(--moss); transform: rotate(180deg); }
+
+/* ==================== Responsive / smartphones ==================== */
+@media (max-width: 640px){
+  /* la barre de recherche prend toute la largeur au lieu d'être centrée avec des marges fixes */
+  .search-wrap{ width: calc(100vw - 32px); left:16px; transform:none; }
+
+  /* l'étiquette de marque prend de la place inutilement sur petit écran */
+  .brand{ display:none; }
+
+  /* on décale les contrôles sous la barre de recherche pour éviter tout chevauchement */
+  .zoom-ctrl{ top:72px; }
+  .top-right-controls{ top:72px; }
+  .filter-panel, .route-panel{ top:120px; }
+
+  /* la légende remonte un peu pour ne pas coller au bouton de localisation / au statut */
+  .legend{ bottom:80px; }
+
+  /* zones tactiles un peu plus grandes pour les doigts */
+  .zoom-ctrl button{ width:42px; height:42px; }
+  .locate-btn{ width:48px; height:48px; }
+}
+
+@media (max-width: 420px){
+  /* boutons Filtres/Itinéraire en icône seule pour laisser assez de place */
+  .route-btn .label, .filter-btn .label{ display:none; }
+  .route-btn, .filter-btn{ padding:9px 11px; }
+  .top-right-controls{ gap:8px; }
+
+  /* résultats/suggestions un peu plus compacts en hauteur sur très petit écran */
+  .results{ max-height:200px; }
+}
 
