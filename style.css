@@ -44,6 +44,9 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
 
 .leaflet-tile-pane{ filter: saturate(0.85) contrast(0.97); transition: filter 0.2s ease; }
 
+/* curseur en croix quand on peut cliquer sur la carte pour choisir un point d'itinéraire */
+#map.map-picking{ cursor: crosshair; }
+
 /* mode sombre : on inverse les couleurs du fond de carte plutôt que de changer de fournisseur,
    pour garder toutes les icônes (parkings, commerces, etc.) visibles comme en mode clair */
 [data-theme="dark"] .leaflet-tile-pane{
