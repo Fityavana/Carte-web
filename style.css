@@ -42,8 +42,13 @@
 html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-serif; color: var(--ink); background: var(--paper); }
 #map{ position:absolute; inset:0; z-index:0; }
 
-/* teinte la carte pour l'accorder à la palette (désactivée en mode sombre, cf. bas de fichier) */
-#map{ filter: saturate(0.85) contrast(0.97); transition: filter 0.2s ease; }
+.leaflet-tile-pane{ filter: saturate(0.85) contrast(0.97); transition: filter 0.2s ease; }
+
+/* mode sombre : on inverse les couleurs du fond de carte plutôt que de changer de fournisseur,
+   pour garder toutes les icônes (parkings, commerces, etc.) visibles comme en mode clair */
+[data-theme="dark"] .leaflet-tile-pane{
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.85) saturate(0.9);
+}
 
 .brand{
   position:absolute; top:16px; left:16px; z-index:500;
@@ -279,5 +284,3 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
 }
 .route-swap-row button:hover{ border-color: var(--moss); transform: rotate(180deg); }
 
-/* le fond de carte sombre (CARTO) est déjà stylé : pas besoin de filtre supplémentaire */
-[data-theme="dark"] #map{ filter: none; }
