@@ -508,6 +508,27 @@ function routeBias(inputEl){
   };
 }
 
+// ---------- Choix du mode de transport (OSRM, gratuit, serveur public FOSSGIS) ----------
+// Chaque mode a son propre serveur de démonstration public (voiture, vélo, à pied)
+const transportModes = {
+  car:  { osrmBase: 'https://routing.openstreetmap.de/routed-car/route/v1/driving',  label: 'En voiture' },
+  bike: { osrmBase: 'https://routing.openstreetmap.de/routed-bike/route/v1/driving', label: 'À vélo' },
+  foot: { osrmBase: 'https://routing.openstreetmap.de/routed-foot/route/v1/driving', label: 'À pied' }
+};
+let selectedMode = 'car';
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedMode = btn.dataset.mode;
+    // si un itinéraire est déjà affiché, on le recalcule directement dans le nouveau mode
+    if(routeStartInput.value.trim() && routeEndInput.value.trim() && routeResultEl.classList.contains('show')){
+      calculateRoute();
+    }
+  });
+});
+
 function formatDistance(m){
   return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`;
 }
@@ -525,6 +546,8 @@ document.getElementById('routeClear').addEventListener('click', () => {
     delete routeStartInput.dataset[key];
     delete routeEndInput.dataset[key];
   });
+  selectedMode = 'car';
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'car'));
   routeStartSuggestions.classList.remove('show');
   routeEndSuggestions.classList.remove('show');
   routeResultEl.classList.remove('show');
@@ -586,7 +609,8 @@ async function calculateRoute(){
     }
 
     showStatus('Calcul de l\'itinéraire…');
-    const url = `https://router.project-osrm.org/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=full&geometries=geojson`;
+    const base = transportModes[selectedMode].osrmBase;
+    const url = `${base}/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=full&geometries=geojson`;
     const res = await fetch(url);
     const data = await res.json();
 
@@ -613,7 +637,7 @@ async function calculateRoute(){
     hideStatus();
     routeResultEl.innerHTML = `
       <div class="big">${formatDistance(route.distance)} — ${formatDuration(route.duration)}</div>
-      <div>En voiture, depuis ${startPoint.label} vers ${endPoint.label}.</div>
+      <div>${transportModes[selectedMode].label}, depuis ${startPoint.label} vers ${endPoint.label}.</div>
     `;
     routeResultEl.classList.add('show');
   }catch(err){
