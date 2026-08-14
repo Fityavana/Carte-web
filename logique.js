@@ -435,13 +435,21 @@ function routePinIcon(color, letter){
   });
 }
 
+// ouvre/ferme le panneau itinéraire et active le curseur "sélection" sur la carte en conséquence
+const mapContainer = document.getElementById('map');
+function setRoutePanelOpen(open){
+  routePanel.classList.toggle('show', open);
+  mapContainer.classList.toggle('map-picking', open);
+}
+
 routeBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   filterPanel.classList.remove('show');
-  routePanel.classList.toggle('show');
+  setRoutePanelOpen(!routePanel.classList.contains('show'));
 });
 document.addEventListener('click', (e) => {
-  if(!e.target.closest('.route-panel') && !e.target.closest('.route-btn')) routePanel.classList.remove('show');
+  // le panneau itinéraire ne se ferme plus qu'en recliquant sur son propre bouton (cf. routeBtn ci-dessus) —
+  // un clic sur la carte pour choisir un point ne doit surtout pas le fermer
   if(!e.target.closest('#routeStart') && !e.target.closest('#routeStartSuggestions')){
     routeStartSuggestions.classList.remove('show');
   }
@@ -450,7 +458,7 @@ document.addEventListener('click', (e) => {
   }
 });
 // évite que le panneau filtre ne recouvre le panneau itinéraire ouvert
-filterBtn.addEventListener('click', () => routePanel.classList.remove('show'));
+filterBtn.addEventListener('click', () => setRoutePanelOpen(false));
 
 document.getElementById('routeUseLocation').addEventListener('click', () => {
   if(!navigator.geolocation){
@@ -548,6 +556,9 @@ document.getElementById('routeClear').addEventListener('click', () => {
   });
   selectedMode = 'car';
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === 'car'));
+  startClickMarker = null;
+  endClickMarker = null;
+  mapClickTarget = 'start';
   routeStartSuggestions.classList.remove('show');
   routeEndSuggestions.classList.remove('show');
   routeResultEl.classList.remove('show');
@@ -556,6 +567,60 @@ document.getElementById('routeClear').addEventListener('click', () => {
 });
 
 document.getElementById('routeCalc').addEventListener('click', calculateRoute);
+
+// ---------- Sélection des points de l'itinéraire directement en cliquant sur la carte ----------
+// n'est actif que quand le panneau itinéraire est ouvert ; alterne départ ↔ arrivée à chaque clic
+let mapClickTarget = 'start';
+let startClickMarker = null;
+let endClickMarker = null;
+
+routeStartInput.addEventListener('focus', () => { mapClickTarget = 'start'; });
+routeEndInput.addEventListener('focus', () => { mapClickTarget = 'end'; });
+
+map.on('click', async (e) => {
+  if(!routePanel.classList.contains('show')) return;
+
+  const { lat, lng } = e.latlng;
+  showStatus('Recherche du lieu…');
+
+  try{
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&addressdetails=1&lat=${lat}&lon=${lng}`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+    const data = await res.json();
+    const addr = data.address || {};
+    const label = data.display_name ? data.display_name.split(',')[0] : `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+    const targetInput = mapClickTarget === 'start' ? routeStartInput : routeEndInput;
+    targetInput.value = label;
+    targetInput.dataset.lat = lat;
+    targetInput.dataset.lon = lng;
+    targetInput.dataset.countryCode = addr.country_code || '';
+    targetInput.dataset.city = addr.city || addr.town || addr.village || addr.municipality || '';
+
+    // affiche un repère temporaire à l'endroit cliqué (remplacé au calcul de l'itinéraire)
+    const icon = mapClickTarget === 'start' ? routePinIcon('#2e7d32', 'A') : routePinIcon('#c0392b', 'B');
+    const popupLabel = mapClickTarget === 'start' ? 'Départ' : 'Arrivée';
+    if(mapClickTarget === 'start'){
+      if(startClickMarker) routeLayer.removeLayer(startClickMarker);
+      startClickMarker = L.marker([lat, lng], { icon }).bindPopup(`<div class="popup-title">${popupLabel}</div>${label}`).addTo(routeLayer);
+    } else {
+      if(endClickMarker) routeLayer.removeLayer(endClickMarker);
+      endClickMarker = L.marker([lat, lng], { icon }).bindPopup(`<div class="popup-title">${popupLabel}</div>${label}`).addTo(routeLayer);
+    }
+
+    hideStatus();
+    // le clic suivant remplit automatiquement l'autre champ
+    mapClickTarget = mapClickTarget === 'start' ? 'end' : 'start';
+
+    // dès que les deux points sont définis (via clic carte), on calcule directement l'itinéraire
+    if(routeStartInput.dataset.lat && routeEndInput.dataset.lat){
+      calculateRoute();
+    }
+  }catch(err){
+    console.error('Erreur reverse geocoding (clic carte).', err);
+    showStatus('Impossible de récupérer le nom de ce lieu. Réessaie.');
+  }
+});
 
 document.getElementById('routeSwap').addEventListener('click', () => {
   // échange le texte affiché
@@ -591,6 +656,8 @@ async function calculateRoute(){
   }
 
   routeLayer.clearLayers();
+  startClickMarker = null;
+  endClickMarker = null;
   routeResultEl.classList.remove('show');
   showStatus('Recherche des lieux…');
 
