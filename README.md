@@ -15,10 +15,8 @@ Une petite application web de cartographie, dans l'esprit de Google Maps, constr
 - **Géolocalisation** — bouton "me localiser" pour centrer la carte sur la position actuelle.
 - **Mode sombre** — bascule clair/sombre, avec inversion des couleurs du fond de carte (pour conserver toutes les icônes visibles) et adaptation de toute l'interface.
 - **Interface responsive** — optimisée pour ordinateur, tablette et smartphone.
-<<<<<<< HEAD
 - **Écran d'accueil** — résumé des fonctionnalités affiché au premier lancement, ré-accessible à tout moment via le bouton "?".
-=======
->>>>>>> 559346846af4be2cf166f619289d637a8904aaf4
+- **Météo du lieu affiché** — température et conditions actuelles pour le lieu recherché (affichage instantané) ou pour le centre de la carte après 5 secondes d'immobilité lors d'un déplacement.
 
 ## Structure du projet
 
@@ -53,6 +51,7 @@ Toutes les API utilisées sont **gratuites**, basées sur les données [OpenStre
 | **Nominatim** (`nominatim.openstreetmap.org`) | Géocodage (recherche de lieux, autosuggestion, géocodage inverse pour le clic sur carte) | [nominatim.org/release-docs/latest/api/Overview](https://nominatim.org/release-docs/latest/api/Overview/) |
 | **Overpass API** (`overpass-api.de` et miroirs) | Recherche des points d'intérêt (magasins, bars, restaurants, etc.) dans la zone visible | [wiki.openstreetmap.org/wiki/Overpass_API](https://wiki.openstreetmap.org/wiki/Overpass_API) |
 | **OSRM** (`routing.openstreetmap.de`) | Calcul d'itinéraire et de distance (voiture / vélo / à pied) | [project-osrm.org/docs/v5.24.0/api](http://project-osrm.org/docs/v5.24.0/api/) |
+| **Open-Meteo** (`api.open-meteo.com`) | Météo actuelle (température, conditions) du lieu affiché sur la carte | [open-meteo.com/en/docs](https://open-meteo.com/en/docs) |
 
 ### ⚠️ Politique d'usage raisonnable
 
