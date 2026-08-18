@@ -161,6 +161,23 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
 }
 .status.show{ display:block; }
 
+.weather-widget{
+  position:absolute; bottom:80px; left:16px; z-index:500;
+  display:none; align-items:center; gap:10px;
+  background: var(--white); border:1.5px solid var(--line); border-radius:12px;
+  padding:8px 14px; box-shadow: 0 8px 22px var(--shadow);
+  max-width:220px;
+}
+.weather-widget.show{ display:flex; }
+.weather-icon{ font-size:1.7rem; line-height:1; }
+.weather-info{ min-width:0; }
+.weather-temp{ font-weight:700; font-size:1rem; color: var(--ink); }
+.weather-desc{ font-size:0.72rem; color: var(--muted); }
+.weather-place{
+  font-size:0.72rem; color: var(--muted); white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; max-width:150px;
+}
+
 .leaflet-popup-content-wrapper{ border-radius:10px; background: var(--white); color: var(--ink); }
 .leaflet-popup-tip{ background: var(--white); }
 .leaflet-popup-close-button{ color: var(--muted) !important; }
@@ -348,7 +365,7 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
   .filter-panel, .route-panel{ top:120px; }
 
   /* la légende remonte un peu pour ne pas coller au bouton de localisation / au statut */
-  .legend{ bottom:80px; }
+  .legend{ bottom:136px; }
 
   /* zones tactiles un peu plus grandes pour les doigts */
   .zoom-ctrl button{ width:42px; height:42px; }
