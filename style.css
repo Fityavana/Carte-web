@@ -47,6 +47,40 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
 /* curseur en croix quand on peut cliquer sur la carte pour choisir un point d'itinéraire */
 #map.map-picking{ cursor: crosshair; }
 
+/* ==================== Écran d'accueil (onboarding) ==================== */
+.onboarding-overlay{
+  position:fixed; inset:0; z-index:2000;
+  background: rgba(0,0,0,0.5);
+  display:flex; align-items:center; justify-content:center;
+  padding:20px;
+}
+.onboarding-overlay.hidden{ display:none; }
+
+.onboarding-card{
+  background: var(--white); color: var(--ink);
+  border-radius:16px; padding:28px;
+  width:min(94vw, 480px); max-height:85vh; overflow-y:auto;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+.onboarding-card h2{ margin:0 0 6px; font-size:1.3rem; }
+.onboarding-subtitle{ margin:0 0 18px; color: var(--muted); font-size:0.9rem; line-height:1.5; }
+
+.onboarding-list{ display:flex; flex-direction:column; gap:16px; margin-bottom:22px; }
+.onboarding-item{ display:flex; gap:12px; align-items:flex-start; }
+.onboarding-item svg{
+  width:20px; height:20px; flex-shrink:0; margin-top:2px;
+  color: var(--moss);
+}
+.onboarding-item strong{ display:block; font-size:0.92rem; margin-bottom:2px; }
+.onboarding-item span{ display:block; font-size:0.82rem; color: var(--muted); line-height:1.45; }
+
+.onboarding-start{
+  width:100%; border:none; border-radius:10px; padding:12px 0;
+  background: var(--moss); color:#fff; font-weight:700; font-size:0.95rem;
+  cursor:pointer; font-family:'Space Grotesk', sans-serif;
+}
+.onboarding-start:hover{ background: var(--moss-dark); }
+
 /* mode sombre : on inverse les couleurs du fond de carte plutôt que de changer de fournisseur,
    pour garder toutes les icônes (parkings, commerces, etc.) visibles comme en mode clair */
 [data-theme="dark"] .leaflet-tile-pane{
@@ -236,6 +270,7 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
   background: var(--white); border:1.5px solid var(--line);
   display:flex; align-items:center; justify-content:center; cursor:pointer;
   box-shadow: 0 8px 22px var(--shadow); color: var(--ink);
+  font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:0.95rem;
 }
 .theme-toggle:hover{ border-color: var(--moss); }
 .theme-toggle svg{ width:17px; height:17px; }
