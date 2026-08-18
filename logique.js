@@ -83,7 +83,93 @@ function placeMarker(lat, lon, label){
     `<div class="popup-title">${label}</div><div class="popup-coords">${lat.toFixed(5)}, ${lon.toFixed(5)}</div>`
   ).openPopup();
   map.setView([lat, lon], 16);
+
+  // météo affichée instantanément pour le lieu tout juste recherché/localisé
+  clearTimeout(weatherDebounceTimer);
+  updateWeather(lat, lon, label);
 }
+
+// ---------- Météo du lieu affiché (Open-Meteo, gratuite, sans clé) ----------
+const weatherWidget = document.getElementById('weatherWidget');
+const weatherIconEl = document.getElementById('weatherIcon');
+const weatherTempEl = document.getElementById('weatherTemp');
+const weatherDescEl = document.getElementById('weatherDesc');
+const weatherPlaceEl = document.getElementById('weatherPlace');
+
+let weatherDebounceTimer = null;
+let lastWeatherCoords = null;
+
+// correspondance simplifiée des codes météo WMO (utilisés par Open-Meteo) → emoji + libellé FR
+function weatherCodeInfo(code){
+  const table = {
+    0: ['☀️', 'Ciel dégagé'],
+    1: ['🌤️', 'Plutôt dégagé'],
+    2: ['⛅', 'Partiellement nuageux'],
+    3: ['☁️', 'Couvert'],
+    45: ['🌫️', 'Brouillard'], 48: ['🌫️', 'Brouillard givrant'],
+    51: ['🌦️', 'Bruine légère'], 53: ['🌦️', 'Bruine'], 55: ['🌦️', 'Bruine forte'],
+    56: ['🌦️', 'Bruine verglaçante'], 57: ['🌦️', 'Bruine verglaçante forte'],
+    61: ['🌧️', 'Pluie légère'], 63: ['🌧️', 'Pluie'], 65: ['🌧️', 'Pluie forte'],
+    66: ['🌧️', 'Pluie verglaçante'], 67: ['🌧️', 'Pluie verglaçante forte'],
+    71: ['❄️', 'Neige légère'], 73: ['❄️', 'Neige'], 75: ['❄️', 'Neige forte'], 77: ['❄️', 'Grains de neige'],
+    80: ['🌦️', 'Averses légères'], 81: ['🌦️', 'Averses'], 82: ['🌦️', 'Averses violentes'],
+    85: ['🌨️', 'Averses de neige'], 86: ['🌨️', 'Averses de neige fortes'],
+    95: ['⛈️', 'Orage'], 96: ['⛈️', 'Orage avec grêle'], 99: ['⛈️', 'Orage violent']
+  };
+  return table[code] || ['🌡️', 'Météo'];
+}
+
+// met à jour l'affichage météo pour une position donnée ; label optionnel (sinon géocodage inverse)
+async function updateWeather(lat, lon, label){
+  // évite une requête redondante si la position n'a quasiment pas bougé (~1 km)
+  if(lastWeatherCoords && Math.abs(lastWeatherCoords.lat - lat) < 0.01 && Math.abs(lastWeatherCoords.lon - lon) < 0.01){
+    if(label) weatherPlaceEl.textContent = label;
+    return;
+  }
+  lastWeatherCoords = { lat, lon };
+
+  try{
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&timezone=auto`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Open-Meteo error');
+    const data = await res.json();
+    const temp = Math.round(data.current.temperature_2m);
+    const [emoji, desc] = weatherCodeInfo(data.current.weathercode);
+
+    // pas de libellé fourni (déclenché par un déplacement de carte) : on géocode le point en inverse
+    const placeLabel = label || await reverseLabel(lat, lon);
+
+    weatherIconEl.textContent = emoji;
+    weatherTempEl.textContent = `${temp}°C`;
+    weatherDescEl.textContent = desc;
+    weatherPlaceEl.textContent = placeLabel;
+    weatherWidget.classList.add('show');
+  }catch(err){
+    console.error('Erreur météo (Open-Meteo).', err);
+  }
+}
+
+async function reverseLabel(lat, lon){
+  try{
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`;
+    const res = await fetch(url, { headers: { 'Accept-Language': 'fr' } });
+    const data = await res.json();
+    return data.display_name ? data.display_name.split(',')[0] : 'Zone visible';
+  }catch(err){
+    return 'Zone visible';
+  }
+}
+
+// dans les autres cas (déplacement/zoom sans recherche) : on attend 5 secondes d'immobilité
+function scheduleWeatherUpdate(){
+  clearTimeout(weatherDebounceTimer);
+  weatherDebounceTimer = setTimeout(() => {
+    const center = map.getCenter();
+    updateWeather(center.lat, center.lng, null);
+  }, 5000);
+}
+map.on('move', scheduleWeatherUpdate);
+scheduleWeatherUpdate(); // déclenche aussi pour la vue initiale si l'utilisateur n'interagit pas
 
 // Recherche via Nominatim (API gratuite d'OpenStreetMap, sans clé)
 async function search(query){
