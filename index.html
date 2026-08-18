@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -36,6 +36,15 @@
 
 <div class="locate-btn" id="locateBtn" title="Me localiser">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+</div>
+
+<div class="weather-widget" id="weatherWidget">
+  <span class="weather-icon" id="weatherIcon">🌤️</span>
+  <div class="weather-info">
+    <div class="weather-temp" id="weatherTemp">--°C</div>
+    <div class="weather-desc" id="weatherDesc"></div>
+    <div class="weather-place" id="weatherPlace">—</div>
+  </div>
 </div>
 
 <div class="top-right-controls">
@@ -151,6 +160,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
-<script src="logique.js?v=9"></script>
+<script src="logique.js?v=10"></script>
 </body>
 </html>
