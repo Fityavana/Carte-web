@@ -39,6 +39,31 @@ themeToggle.addEventListener('click', () => {
   saveTheme(next);
 });
 
+// ---------- Écran d'accueil (onboarding) ----------
+const onboardingOverlay = document.getElementById('onboardingOverlay');
+const helpBtn = document.getElementById('helpBtn');
+
+function getOnboardingSeen(){
+  try{ return localStorage.getItem('onboardingSeen'); }catch(e){ return null; }
+}
+function setOnboardingSeen(){
+  try{ localStorage.setItem('onboardingSeen', '1'); }catch(e){ /* pas grave, réapparaîtra à la prochaine visite */ }
+}
+
+// affiché automatiquement au tout premier lancement seulement ; toujours disponible via le bouton "?"
+if(getOnboardingSeen()){
+  onboardingOverlay.classList.add('hidden');
+}
+
+document.getElementById('onboardingStart').addEventListener('click', () => {
+  onboardingOverlay.classList.add('hidden');
+  setOnboardingSeen();
+});
+
+helpBtn.addEventListener('click', () => {
+  onboardingOverlay.classList.remove('hidden');
+});
+
 let marker = null;
 const statusEl = document.getElementById('status');
 const resultsEl = document.getElementById('results');
