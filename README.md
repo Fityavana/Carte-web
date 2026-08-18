@@ -15,7 +15,10 @@ Une petite application web de cartographie, dans l'esprit de Google Maps, constr
 - **Géolocalisation** — bouton "me localiser" pour centrer la carte sur la position actuelle.
 - **Mode sombre** — bascule clair/sombre, avec inversion des couleurs du fond de carte (pour conserver toutes les icônes visibles) et adaptation de toute l'interface.
 - **Interface responsive** — optimisée pour ordinateur, tablette et smartphone.
+<<<<<<< HEAD
 - **Écran d'accueil** — résumé des fonctionnalités affiché au premier lancement, ré-accessible à tout moment via le bouton "?".
+=======
+>>>>>>> 559346846af4be2cf166f619289d637a8904aaf4
 
 ## Structure du projet
 
