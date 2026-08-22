@@ -294,7 +294,7 @@ html, body{ margin:0; padding:0; height:100%; font-family:'Space Grotesk', sans-
 
 .top-right-controls{
   position:absolute; top:16px; right:16px; z-index:500;
-  display:flex; align-items:center; gap:10px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;
 }
 
 .route-panel{
