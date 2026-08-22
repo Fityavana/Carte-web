@@ -40,6 +40,12 @@ const translations = {
     onbItem5Desc: "Bouton lune/soleil en haut à droite pour basculer l'affichage.",
     onbItem6Title: 'Zoom',
     onbItem6Desc: 'Boutons + / − en haut à gauche pour zoomer et dézoomer.',
+    onbItem7Title: 'Météo',
+    onbItem7Desc: "Affichée en bas à gauche pour le lieu recherché (instantané) ou pour la zone visible après quelques secondes d'immobilité.",
+    onbItem8Title: 'Langue',
+    onbItem8Desc: "Bouton FR/EN en haut à droite pour basculer toute l'interface entre français et anglais.",
+    onbScrollHint: 'Fais défiler jusqu\'en bas pour continuer',
+    onbCloseTitle: 'Fermer',
     onbStart: 'Commencer',
 
     statusSearching: 'Recherche en cours…',
@@ -131,6 +137,12 @@ const translations = {
     onbItem5Desc: 'Moon/sun button at the top right to switch the display.',
     onbItem6Title: 'Zoom',
     onbItem6Desc: '+ / − buttons at the top left to zoom in and out.',
+    onbItem7Title: 'Weather',
+    onbItem7Desc: 'Shown at the bottom left for the searched place (instant) or for the visible area after a few seconds of stillness.',
+    onbItem8Title: 'Language',
+    onbItem8Desc: 'FR/EN button at the top right to switch the whole interface between French and English.',
+    onbScrollHint: 'Scroll down to continue',
+    onbCloseTitle: 'Close',
     onbStart: 'Get started',
 
     statusSearching: 'Searching…',
@@ -278,6 +290,9 @@ applyLanguage(getSavedLang() || browserLang);
 
 // ---------- Écran d'accueil (onboarding) ----------
 const onboardingOverlay = document.getElementById('onboardingOverlay');
+const onboardingScroll = document.getElementById('onboardingScroll');
+const onboardingStartBtn = document.getElementById('onboardingStart');
+const onboardingScrollHint = document.getElementById('onboardingScrollHint');
 const helpBtn = document.getElementById('helpBtn');
 
 function getOnboardingSeen(){
@@ -287,18 +302,55 @@ function setOnboardingSeen(){
   try{ localStorage.setItem('onboardingSeen', '1'); }catch(e){ /* pas grave, réapparaîtra à la prochaine visite */ }
 }
 
+// le bouton "Commencer" ne devient cliquable qu'une fois arrivé au bas des instructions
+// détection fiable via IntersectionObserver (immunisée contre les arrondis de pixels/zoom)
+const onboardingEndMarker = document.getElementById('onboardingEndMarker');
+
+const onboardingObserver = new IntersectionObserver((entries) => {
+  const atEnd = entries[0].isIntersecting;
+  onboardingStartBtn.disabled = !atEnd;
+  onboardingScrollHint.classList.toggle('hidden', atEnd);
+}, { root: onboardingScroll, threshold: 0 });
+
+function closeOnboarding(){
+  onboardingOverlay.classList.add('hidden');
+  setOnboardingSeen();
+}
+
+function showOnboarding(){
+  onboardingOverlay.classList.remove('hidden');
+  onboardingScroll.scrollTop = 0;
+  onboardingStartBtn.disabled = true;
+  onboardingScrollHint.classList.remove('hidden');
+  // ré-observe à chaque ouverture pour forcer un nouveau calcul (évite un état figé si le premier calcul a raté)
+  onboardingObserver.unobserve(onboardingEndMarker);
+  onboardingObserver.observe(onboardingEndMarker);
+}
+
 // affiché automatiquement au tout premier lancement seulement ; toujours disponible via le bouton "?"
 if(getOnboardingSeen()){
   onboardingOverlay.classList.add('hidden');
+} else {
+  showOnboarding();
 }
 
-document.getElementById('onboardingStart').addEventListener('click', () => {
-  onboardingOverlay.classList.add('hidden');
-  setOnboardingSeen();
+onboardingStartBtn.addEventListener('click', () => {
+  if(onboardingStartBtn.disabled) return;
+  closeOnboarding();
 });
 
 helpBtn.addEventListener('click', () => {
-  onboardingOverlay.classList.remove('hidden');
+  showOnboarding();
+});
+
+document.getElementById('onboardingClose').addEventListener('click', closeOnboarding);
+
+// sortie de secours : toujours possible de fermer, même si la détection de scroll ne s'est pas déclenchée
+onboardingOverlay.addEventListener('click', (e) => {
+  if(e.target === onboardingOverlay) closeOnboarding();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && !onboardingOverlay.classList.contains('hidden')) closeOnboarding();
 });
 
 let marker = null;
