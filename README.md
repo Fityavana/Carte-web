@@ -17,6 +17,7 @@ Une petite application web de cartographie, dans l'esprit de Google Maps, constr
 - **Interface responsive** — optimisée pour ordinateur, tablette et smartphone.
 - **Écran d'accueil** — résumé des fonctionnalités affiché au premier lancement, ré-accessible à tout moment via le bouton "?".
 - **Météo du lieu affiché** — température et conditions actuelles pour le lieu recherché (affichage instantané) ou pour le centre de la carte après 5 secondes d'immobilité lors d'un déplacement.
+- **Choix de la langue (Français / English)** — bascule instantanée de toute l'interface, avec mémorisation du choix.
 
 ## Structure du projet
 
