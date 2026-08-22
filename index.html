@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 
@@ -125,42 +125,57 @@
 
 <div class="onboarding-overlay" id="onboardingOverlay">
   <div class="onboarding-card">
-    <h2 data-i18n="onbTitle">Bienvenue sur Petite Carte</h2>
-    <p class="onboarding-subtitle" data-i18n="onbSubtitle">Une carte façon Google Maps, basée sur OpenStreetMap — 100% gratuite. Voici ce que tu peux faire :</p>
+    <button class="onboarding-close" id="onboardingClose" data-i18n-title="onbCloseTitle" aria-label="Close">×</button>
+    <div class="onboarding-scroll" id="onboardingScroll">
+      <h2 data-i18n="onbTitle">Bienvenue sur Petite Carte</h2>
+      <p class="onboarding-subtitle" data-i18n="onbSubtitle">Une carte façon Google Maps, basée sur OpenStreetMap — 100% gratuite. Voici ce que tu peux faire :</p>
 
-    <div class="onboarding-list">
-      <div class="onboarding-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <div><strong data-i18n="onbItem1Title">Rechercher un lieu</strong><span data-i18n="onbItem1Desc">Barre de recherche en haut, avec suggestions en direct pendant la saisie.</span></div>
+      <div class="onboarding-list">
+        <div class="onboarding-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <div><strong data-i18n="onbItem1Title">Rechercher un lieu</strong><span data-i18n="onbItem1Desc">Barre de recherche en haut, avec suggestions en direct pendant la saisie.</span></div>
+        </div>
+        <div class="onboarding-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <div><strong data-i18n="onbItem2Title">Filtrer les lieux</strong><span data-i18n="onbItem2Desc">Bouton "Filtres" : affiche magasins, bars, restaurants, pharmacies... dans la zone visible, avec regroupement automatique et légende.</span></div>
+        </div>
+        <div class="onboarding-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.2 17.8 C 12 14, 10 9, 15.8 6.6"/></svg>
+          <div><strong data-i18n="onbItem3Title">Calculer un itinéraire</strong><span data-i18n="onbItem3Desc">Bouton "Itinéraire" : tape deux lieux ou clique-les directement sur la carte, choisis voiture / vélo / à pied, inverse départ ↔ arrivée, ou pars de ta position GPS. Distance et durée s'affichent automatiquement.</span></div>
+        </div>
+        <div class="onboarding-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          <div><strong data-i18n="onbItem4Title">Me localiser</strong><span data-i18n="onbItem4Desc">Bouton rond en bas à droite : centre la carte sur ta position actuelle.</span></div>
+        </div>
+        <div class="onboarding-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v2M12 19v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/><circle cx="12" cy="12" r="3.5"/></svg>
+          <div><strong data-i18n="onbItem7Title">Météo</strong><span data-i18n="onbItem7Desc">Affichée en bas à gauche pour le lieu recherché (instantané) ou pour la zone visible après quelques secondes d'immobilité.</span></div>
+        </div>
+        <div class="onboarding-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A8.5 8.5 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z"/></svg>
+          <div><strong data-i18n="onbItem5Title">Mode sombre</strong><span data-i18n="onbItem5Desc">Bouton lune/soleil en haut à droite pour basculer l'affichage.</span></div>
+        </div>
+        <div class="onboarding-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+          <div><strong data-i18n="onbItem8Title">Langue</strong><span data-i18n="onbItem8Desc">Bouton FR/EN en haut à droite pour basculer toute l'interface entre français et anglais.</span></div>
+        </div>
+        <div class="onboarding-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></svg>
+          <div><strong data-i18n="onbItem6Title">Zoom</strong><span data-i18n="onbItem6Desc">Boutons + / − en haut à gauche pour zoomer et dézoomer.</span></div>
+        </div>
       </div>
-      <div class="onboarding-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-        <div><strong data-i18n="onbItem2Title">Filtrer les lieux</strong><span data-i18n="onbItem2Desc">Bouton "Filtres" : affiche magasins, bars, restaurants, pharmacies... dans la zone visible, avec regroupement automatique et légende.</span></div>
-      </div>
-      <div class="onboarding-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.2 17.8 C 12 14, 10 9, 15.8 6.6"/></svg>
-        <div><strong data-i18n="onbItem3Title">Calculer un itinéraire</strong><span data-i18n="onbItem3Desc">Bouton "Itinéraire" : tape deux lieux ou clique-les directement sur la carte, choisis voiture / vélo / à pied, inverse départ ↔ arrivée, ou pars de ta position GPS. Distance et durée s'affichent automatiquement.</span></div>
-      </div>
-      <div class="onboarding-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-        <div><strong data-i18n="onbItem4Title">Me localiser</strong><span data-i18n="onbItem4Desc">Bouton rond en bas à droite : centre la carte sur ta position actuelle.</span></div>
-      </div>
-      <div class="onboarding-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A8.5 8.5 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z"/></svg>
-        <div><strong data-i18n="onbItem5Title">Mode sombre</strong><span data-i18n="onbItem5Desc">Bouton lune/soleil en haut à droite pour basculer l'affichage.</span></div>
-      </div>
-      <div class="onboarding-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></svg>
-        <div><strong data-i18n="onbItem6Title">Zoom</strong><span data-i18n="onbItem6Desc">Boutons + / − en haut à gauche pour zoomer et dézoomer.</span></div>
-      </div>
+      <div id="onboardingEndMarker" style="height:1px;"></div>
     </div>
 
-    <button class="onboarding-start" id="onboardingStart" data-i18n="onbStart">Commencer</button>
+    <div class="onboarding-footer">
+      <button class="onboarding-start" id="onboardingStart" data-i18n="onbStart" disabled>Commencer</button>
+      <p class="onboarding-scroll-hint" id="onboardingScrollHint" data-i18n="onbScrollHint">Fais défiler jusqu'en bas pour continuer</p>
+    </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
-<script src="logique.js?v=11"></script>
+<script src="logique.js?v=15"></script>
 </body>
 </html>
