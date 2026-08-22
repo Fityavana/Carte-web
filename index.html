@@ -9,15 +9,15 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
 <div class="brand"><span class="dot"></span>Petite Carte</div>
 
 <div class="zoom-ctrl">
-  <button id="zoomInBtn" title="Zoomer">+</button>
-  <button id="zoomOutBtn" title="Dézoomer">−</button>
+  <button id="zoomInBtn" data-i18n-title="zoomInTitle">+</button>
+  <button id="zoomOutBtn" data-i18n-title="zoomOutTitle">−</button>
 </div>
 
 <div id="map"></div>
@@ -26,15 +26,15 @@
 
 <div class="search-wrap">
   <div class="search-box">
-    <input id="searchInput" type="text" placeholder="Chercher une adresse, une ville, un lieu…" autocomplete="off" />
-    <button id="searchBtn" title="Rechercher">
+    <input id="searchInput" type="text" data-i18n-placeholder="searchPlaceholder" autocomplete="off" />
+    <button id="searchBtn" data-i18n-title="searchTitle">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </button>
   </div>
   <div class="results" id="results"></div>
 </div>
 
-<div class="locate-btn" id="locateBtn" title="Me localiser">
+<div class="locate-btn" id="locateBtn" data-i18n-title="locateTitle">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
 </div>
 
@@ -48,48 +48,49 @@
 </div>
 
 <div class="top-right-controls">
-  <button class="theme-toggle" id="helpBtn" title="Voir les fonctionnalités">?</button>
-  <button class="theme-toggle" id="themeToggle" title="Basculer le mode sombre"></button>
+  <button class="theme-toggle" id="langToggle" data-i18n-title="langToggleTitle">FR</button>
+  <button class="theme-toggle" id="helpBtn" data-i18n-title="helpTitle">?</button>
+  <button class="theme-toggle" id="themeToggle" data-i18n-title="themeToggleTitle"></button>
   <div class="route-btn" id="routeBtn">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.2 17.8 C 12 14, 10 9, 15.8 6.6"/></svg>
-    <span class="label">Itinéraire</span>
+    <span class="label" data-i18n="navItinerary">Itinéraire</span>
   </div>
   <div class="filter-btn" id="filterBtn">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-    <span class="label">Filtres</span>
+    <span class="label" data-i18n="navFilters">Filtres</span>
     <span class="count" id="filterCount">0</span>
   </div>
 </div>
 
 <div class="route-panel" id="routePanel">
-  <h4>Calculer un itinéraire</h4>
+  <h4 data-i18n="routePanelTitle">Calculer un itinéraire</h4>
 
   <div class="route-modes" id="routeModes">
-    <button class="mode-btn active" data-mode="car" title="Voiture">
+    <button class="mode-btn active" data-mode="car" data-i18n-title="modeCar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l1.5-4.5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.5L21 13"/><rect x="2.5" y="13" width="19" height="6" rx="1.5"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>
-      <span>Voiture</span>
+      <span data-i18n="modeCar">Voiture</span>
     </button>
-    <button class="mode-btn" data-mode="bike" title="Vélo">
+    <button class="mode-btn" data-mode="bike" data-i18n-title="modeBike">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="17" r="3.5"/><circle cx="18" cy="17" r="3.5"/><path d="M6 17l4-9h4l3 9M10 8h3M13 8l3 4h2"/></svg>
-      <span>Vélo</span>
+      <span data-i18n="modeBike">Vélo</span>
     </button>
-    <button class="mode-btn" data-mode="foot" title="À pied">
+    <button class="mode-btn" data-mode="foot" data-i18n-title="modeFoot">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="4.5" r="1.6"/><path d="M12.5 8l-2 3 1 2-2.5 6M12.5 8l3 1 1.5 3-2 1.5.5 4.5M15.5 9l3-2"/></svg>
-      <span>À pied</span>
+      <span data-i18n="modeFoot">À pied</span>
     </button>
   </div>
 
   <div class="route-field">
     <span class="route-dot start"></span>
-    <input id="routeStart" type="text" placeholder="Point de départ" autocomplete="off" />
-    <button id="routeUseLocation" title="Utiliser ma position">
+    <input id="routeStart" type="text" data-i18n-placeholder="startPlaceholder" autocomplete="off" />
+    <button id="routeUseLocation" data-i18n-title="useLocationTitle">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
     </button>
   </div>
   <div class="results" id="routeStartSuggestions"></div>
 
   <div class="route-swap-row">
-    <button id="routeSwap" title="Inverser départ et arrivée">
+    <button id="routeSwap" data-i18n-title="swapTitle">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M8 3v15"/><path d="M4 14l4 4 4-4"/>
         <path d="M16 21V6"/><path d="M20 10l-4-4-4 4"/>
@@ -99,67 +100,67 @@
 
   <div class="route-field">
     <span class="route-dot end"></span>
-    <input id="routeEnd" type="text" placeholder="Point d'arrivée" autocomplete="off" />
+    <input id="routeEnd" type="text" data-i18n-placeholder="endPlaceholder" autocomplete="off" />
   </div>
   <div class="results" id="routeEndSuggestions"></div>
 
   <div class="filter-actions">
-    <button class="clear" id="routeClear">Effacer</button>
-    <button class="apply" id="routeCalc">Calculer</button>
+    <button class="clear" id="routeClear" data-i18n="clearBtn">Effacer</button>
+    <button class="apply" id="routeCalc" data-i18n="calcBtn">Calculer</button>
   </div>
   <div class="route-result" id="routeResult"></div>
 </div>
 
 <div class="filter-panel" id="filterPanel">
-  <h4>Afficher sur la carte</h4>
+  <h4 data-i18n="filterPanelTitle">Afficher sur la carte</h4>
   <div class="filter-list" id="filterList"></div>
   <div class="filter-actions">
-    <button class="clear" id="filterClear">Effacer</button>
-    <button class="apply" id="filterApply">Afficher</button>
+    <button class="clear" id="filterClear" data-i18n="clearBtn">Effacer</button>
+    <button class="apply" id="filterApply" data-i18n="showBtn">Afficher</button>
   </div>
-  <div class="filter-hint">Recherche dans la zone visible. Zoome un peu si la zone est trop grande.</div>
+  <div class="filter-hint" data-i18n="filterHint">Recherche dans la zone visible. Zoome un peu si la zone est trop grande.</div>
 </div>
 
 <div class="status" id="status"></div>
 
 <div class="onboarding-overlay" id="onboardingOverlay">
   <div class="onboarding-card">
-    <h2>Bienvenue sur Petite Carte</h2>
-    <p class="onboarding-subtitle">Une carte façon Google Maps, basée sur OpenStreetMap — 100% gratuite. Voici ce que tu peux faire :</p>
+    <h2 data-i18n="onbTitle">Bienvenue sur Petite Carte</h2>
+    <p class="onboarding-subtitle" data-i18n="onbSubtitle">Une carte façon Google Maps, basée sur OpenStreetMap — 100% gratuite. Voici ce que tu peux faire :</p>
 
     <div class="onboarding-list">
       <div class="onboarding-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <div><strong>Rechercher un lieu</strong><span>Barre de recherche en haut, avec suggestions en direct pendant la saisie.</span></div>
+        <div><strong data-i18n="onbItem1Title">Rechercher un lieu</strong><span data-i18n="onbItem1Desc">Barre de recherche en haut, avec suggestions en direct pendant la saisie.</span></div>
       </div>
       <div class="onboarding-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-        <div><strong>Filtrer les lieux</strong><span>Bouton "Filtres" : affiche magasins, bars, restaurants, pharmacies... dans la zone visible, avec regroupement automatique et légende.</span></div>
+        <div><strong data-i18n="onbItem2Title">Filtrer les lieux</strong><span data-i18n="onbItem2Desc">Bouton "Filtres" : affiche magasins, bars, restaurants, pharmacies... dans la zone visible, avec regroupement automatique et légende.</span></div>
       </div>
       <div class="onboarding-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.2 17.8 C 12 14, 10 9, 15.8 6.6"/></svg>
-        <div><strong>Calculer un itinéraire</strong><span>Bouton "Itinéraire" : tape deux lieux ou clique-les directement sur la carte, choisis voiture / vélo / à pied, inverse départ ↔ arrivée, ou pars de ta position GPS. Distance et durée s'affichent automatiquement.</span></div>
+        <div><strong data-i18n="onbItem3Title">Calculer un itinéraire</strong><span data-i18n="onbItem3Desc">Bouton "Itinéraire" : tape deux lieux ou clique-les directement sur la carte, choisis voiture / vélo / à pied, inverse départ ↔ arrivée, ou pars de ta position GPS. Distance et durée s'affichent automatiquement.</span></div>
       </div>
       <div class="onboarding-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-        <div><strong>Me localiser</strong><span>Bouton rond en bas à droite : centre la carte sur ta position actuelle.</span></div>
+        <div><strong data-i18n="onbItem4Title">Me localiser</strong><span data-i18n="onbItem4Desc">Bouton rond en bas à droite : centre la carte sur ta position actuelle.</span></div>
       </div>
       <div class="onboarding-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5A8.5 8.5 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5Z"/></svg>
-        <div><strong>Mode sombre</strong><span>Bouton lune/soleil en haut à droite pour basculer l'affichage.</span></div>
+        <div><strong data-i18n="onbItem5Title">Mode sombre</strong><span data-i18n="onbItem5Desc">Bouton lune/soleil en haut à droite pour basculer l'affichage.</span></div>
       </div>
       <div class="onboarding-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M12 5v14"/></svg>
-        <div><strong>Zoom</strong><span>Boutons + / − en haut à gauche pour zoomer et dézoomer.</span></div>
+        <div><strong data-i18n="onbItem6Title">Zoom</strong><span data-i18n="onbItem6Desc">Boutons + / − en haut à gauche pour zoomer et dézoomer.</span></div>
       </div>
     </div>
 
-    <button class="onboarding-start" id="onboardingStart">Commencer</button>
+    <button class="onboarding-start" id="onboardingStart" data-i18n="onbStart">Commencer</button>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
-<script src="logique.js?v=10"></script>
+<script src="logique.js?v=11"></script>
 </body>
 </html>
